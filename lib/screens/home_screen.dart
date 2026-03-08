@@ -1,4 +1,4 @@
-// lib/screens/home_screen.dart
+// lib/screens/home_screen.dart — v2
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
@@ -6,7 +6,7 @@ import '../providers/app_provider.dart';
 import '../models/models.dart';
 import 'filiere_screen.dart';
 import 'search_screen.dart';
-import 'admin/admin_login_screen.dart';
+import 'admin/sync_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,17 +18,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const _HomePage(),
-    const SearchScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _pages,
+        children: const [
+          _HomePage(),
+          SearchScreen(),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -46,7 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
           backgroundColor: AppTheme.white,
           selectedItemColor: AppTheme.primaryBlue,
           unselectedItemColor: AppTheme.textLight,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
+          selectedLabelStyle:
+              const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
           unselectedLabelStyle: const TextStyle(fontSize: 11),
           type: BottomNavigationBarType.fixed,
           elevation: 0,
@@ -79,39 +78,59 @@ class _HomePage extends StatelessWidget {
       backgroundColor: AppTheme.offWhite,
       body: CustomScrollView(
         slivers: [
-          // Header
+          // AppBar
           SliverAppBar(
-            expandedHeight: 180,
+            expandedHeight: 200,
             floating: false,
             pinned: true,
             backgroundColor: AppTheme.primaryBlue,
             elevation: 0,
             actions: [
-              IconButton(
-                icon: Icon(
-                  provider.isAdminLogged ? Icons.admin_panel_settings : Icons.admin_panel_settings_outlined,
-                  color: provider.isAdminLogged ? AppTheme.accentGold : AppTheme.white,
+              // Badge rôle + déconnexion
+              GestureDetector(
+                onTap: () => _showRoleMenu(context, provider),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: provider.isAdmin
+                        ? AppTheme.accentGold
+                        : AppTheme.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        provider.isAdmin
+                            ? Icons.admin_panel_settings
+                            : Icons.person_outline,
+                        size: 16,
+                        color: AppTheme.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        provider.isAdmin ? 'Admin' : 'Étudiant',
+                        style: const TextStyle(
+                            color: AppTheme.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () {
-                  if (provider.isAdminLogged) {
-                    _showAdminMenu(context, provider);
-                  } else {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const AdminLoginScreen()));
-                  }
-                },
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
+                decoration:
+                    const BoxDecoration(gradient: AppTheme.primaryGradient),
                 child: SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 44),
                         Row(
                           children: [
                             Container(
@@ -131,34 +150,35 @@ class _HomePage extends StatelessWidget {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'GBAKI ENSEA',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.white,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
+                                const Text('GBAKI ENSEA',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.white,
+                                        letterSpacing: 1)),
                                 Text(
                                   'Bibliothèque académique',
                                   style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppTheme.white.withValues(alpha: 0.8),
-                                  ),
+                                      fontSize: 12,
+                                      color: AppTheme.white.withValues(alpha: 0.8)),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Choisissez votre filière',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppTheme.white,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        const SizedBox(height: 16),
+                        Text(
+                          provider.firebaseEnabled
+                              ? (provider.isAdmin
+                                  ? '👑 Mode Admin · ☁️ Cloud Firebase'
+                                  : '☁️ Données cloud synchronisées')
+                              : (provider.isAdmin
+                                  ? '👑 Mode Administrateur actif'
+                                  : '👋 Choisissez votre filière'),
+                          style: const TextStyle(
+                              fontSize: 15,
+                              color: AppTheme.white,
+                              fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
@@ -168,7 +188,88 @@ class _HomePage extends StatelessWidget {
             ),
           ),
 
-          // Stats bar
+          // Bandeau admin
+          if (provider.isAdmin)
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                      colors: [Color(0xFFF5A623), Color(0xFFE8901A)]),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.admin_panel_settings,
+                        color: AppTheme.white, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Mode Administrateur',
+                              style: TextStyle(
+                                  color: AppTheme.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13)),
+                          Text(
+                            provider.firebaseEnabled
+                                ? '☁️ Cloud Firebase actif · ajout visible par tous'
+                                : 'Gérer UEs, matières et documents',
+                            style: const TextStyle(color: AppTheme.white, fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const SyncScreen()),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.white.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.sync, color: AppTheme.white, size: 14),
+                            SizedBox(width: 4),
+                            Text('Sync',
+                                style: TextStyle(
+                                    color: AppTheme.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: () => _confirmLogout(context, provider),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.white.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text('Déconnexion',
+                            style: TextStyle(
+                                color: AppTheme.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Stats
           SliverToBoxAdapter(
             child: Container(
               margin: const EdgeInsets.all(16),
@@ -178,10 +279,9 @@ class _HomePage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primaryBlue.withValues(alpha: 0.08),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4)),
                 ],
               ),
               child: Row(
@@ -191,7 +291,17 @@ class _HomePage extends StatelessWidget {
                   _buildDivider(),
                   _buildStat('14', 'Niveaux', Icons.layers_outlined),
                   _buildDivider(),
-                  _buildStat('IA', 'Intégrée', Icons.auto_awesome_outlined),
+                  _buildStat(
+                    '${provider.allDocuments.length}',
+                    'Docs',
+                    Icons.description_outlined,
+                  ),
+                  _buildDivider(),
+                  _buildStat(
+                    provider.firebaseEnabled ? '☁️' : '📱',
+                    provider.firebaseEnabled ? 'Cloud' : 'Local',
+                    provider.firebaseEnabled ? Icons.cloud_done_outlined : Icons.phone_android_outlined,
+                  ),
                 ],
               ),
             ),
@@ -211,42 +321,58 @@ class _HomePage extends StatelessWidget {
             ),
           ),
 
-          // Espace admin
-          if (provider.isAdminLogged)
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+          // Bandeau synchronisation pour les étudiants
+          if (!provider.isAdmin)
             SliverToBoxAdapter(
               child: Container(
-                margin: const EdgeInsets.all(16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFF5A623), Color(0xFFE8901A)],
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SyncScreen()),
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.admin_panel_settings, color: AppTheme.white, size: 28),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('Mode Administrateur',
-                              style: TextStyle(
-                                  color: AppTheme.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15)),
-                          Text('Vous pouvez gérer les documents',
-                              style: TextStyle(color: AppTheme.white, fontSize: 12)),
-                        ],
-                      ),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: AppTheme.primaryBlue.withValues(alpha: 0.2)),
                     ),
-                  ],
+                    child: const Row(
+                      children: [
+                        Icon(Icons.sync, color: AppTheme.primaryBlue, size: 20),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Synchroniser les données',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                    color: AppTheme.primaryBlue),
+                              ),
+                              Text(
+                                'Recevoir les nouveaux documents ajoutés par l\'admin',
+                                style: TextStyle(
+                                    fontSize: 11, color: AppTheme.textMedium),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: AppTheme.primaryBlue),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 20)),
         ],
       ),
     );
@@ -258,57 +384,80 @@ class _HomePage extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: AppTheme.primaryBlue),
+            Icon(icon, size: 14, color: AppTheme.primaryBlue),
             const SizedBox(width: 4),
             Text(value,
                 style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.primaryBlue)),
           ],
         ),
         Text(label,
-            style: const TextStyle(fontSize: 11, color: AppTheme.textMedium)),
+            style: const TextStyle(fontSize: 10, color: AppTheme.textMedium)),
       ],
     );
   }
 
-  Widget _buildDivider() {
-    return Container(width: 1, height: 36, color: AppTheme.lightGray);
-  }
+  Widget _buildDivider() =>
+      Container(width: 1, height: 32, color: AppTheme.lightGray);
 
-  void _showAdminMenu(BuildContext context, AppProvider provider) {
+  void _showRoleMenu(BuildContext context, AppProvider provider) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40,
-              height: 4,
+              width: 40, height: 4,
               decoration: BoxDecoration(
-                color: AppTheme.lightGray,
-                borderRadius: BorderRadius.circular(2),
-              ),
+                  color: AppTheme.lightGray,
+                  borderRadius: BorderRadius.circular(2)),
             ),
-            const SizedBox(height: 20),
-            const Text('Menu Admin', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.logout, color: AppTheme.error),
-              title: const Text('Se déconnecter'),
-              onTap: () {
-                Navigator.pop(ctx);
-                provider.logoutAdmin();
-              },
+            Text(
+              provider.isAdmin ? 'Compte Administrateur' : 'Compte Étudiant',
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 16),
+            if (provider.isAdmin)
+              ListTile(
+                leading: const Icon(Icons.logout, color: AppTheme.error),
+                title: const Text('Se déconnecter (passer Étudiant)'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _confirmLogout(context, provider);
+                },
+              ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmLogout(BuildContext context, AppProvider provider) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Déconnexion'),
+        content: const Text('Repasser en mode Étudiant ?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Annuler')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              provider.logout();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue),
+            child: const Text('Confirmer'),
+          ),
+        ],
       ),
     );
   }
@@ -320,28 +469,20 @@ class _FiliereCard extends StatelessWidget {
 
   Color get _cardColor {
     switch (filiere.id) {
-      case 'as':
-        return const Color(0xFF1B4B8A);
-      case 'ise':
-        return const Color(0xFF0D6E5C);
-      case 'ips':
-        return const Color(0xFF5B2D8A);
-      default:
-        return AppTheme.primaryBlue;
+      case 'as': return const Color(0xFF1B4B8A);
+      case 'ise': return const Color(0xFF0D6E5C);
+      case 'ips': return const Color(0xFF5B2D8A);
+      default: return AppTheme.primaryBlue;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => FiliereScreen(filiere: filiere),
-          ),
-        );
-      },
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => FiliereScreen(filiere: filiere)),
+      ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
@@ -349,78 +490,66 @@ class _FiliereCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: _cardColor.withValues(alpha: 0.12),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
-            ),
+                color: _cardColor.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 6)),
           ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: Stack(
             children: [
-              // Bande colorée gauche
               Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: Container(width: 6, color: _cardColor),
-              ),
+                  left: 0, top: 0, bottom: 0,
+                  child: Container(width: 6, color: _cardColor)),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 16, 20),
                 child: Row(
                   children: [
                     Container(
-                      width: 56,
-                      height: 56,
+                      width: 56, height: 56,
                       decoration: BoxDecoration(
-                        color: _cardColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+                          color: _cardColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(14)),
                       child: Center(
-                        child: Text(filiere.icon, style: const TextStyle(fontSize: 26)),
-                      ),
+                          child: Text(filiere.icon,
+                              style: const TextStyle(fontSize: 26))),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            filiere.nom,
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: _cardColor,
-                            ),
-                          ),
+                          Text(filiere.nom,
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: _cardColor)),
                           const SizedBox(height: 4),
-                          Text(
-                            filiere.description,
-                            style: const TextStyle(
-                                fontSize: 13, color: AppTheme.textMedium),
-                          ),
+                          Text(filiere.description,
+                              style: const TextStyle(
+                                  fontSize: 13, color: AppTheme.textMedium)),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: _cardColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
+                                color: _cardColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(6)),
                             child: Text(
                               '${filiere.niveaux.length} niveaux',
                               style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: _cardColor,
-                              ),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: _cardColor),
                             ),
                           ),
                         ],
                       ),
                     ),
                     Icon(Icons.arrow_forward_ios_rounded,
-                        size: 18, color: _cardColor.withValues(alpha: 0.5)),
+                        size: 18,
+                        color: _cardColor.withValues(alpha: 0.5)),
                   ],
                 ),
               ),

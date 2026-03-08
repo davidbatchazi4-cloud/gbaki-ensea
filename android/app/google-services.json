@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1017472499112",
+    "project_id": "gbaki-ensea-da2fe",
+    "storage_bucket": "gbaki-ensea-da2fe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1017472499112:android:193b4c79c1af802d94719d",
+        "android_client_info": {
+          "package_name": "com.ensealearn.learn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCnCSD4ZNTGJxvjJs2D4ZXWQGQKDbF3aJw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

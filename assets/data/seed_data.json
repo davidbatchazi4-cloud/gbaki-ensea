@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "description": "Données initiales GBAKI ENSEA — chargées au premier lancement",
+  "ues": [
+    {
+      "id": "ue_as1_s1_01", "nom": "Mathématiques I", "code": "AS-MATH1",
+      "niveauId": "as1", "semestreId": "as1_s1",
+      "matieres": [
+        {"id": "mat_as1_s1_01", "nom": "Analyse I", "ueId": "ue_as1_s1_01", "enseignant": ""},
+        {"id": "mat_as1_s1_02", "nom": "Algèbre Linéaire", "ueId": "ue_as1_s1_01", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_as1_s1_02", "nom": "Statistique Descriptive", "code": "AS-STAT1",
+      "niveauId": "as1", "semestreId": "as1_s1",
+      "matieres": [
+        {"id": "mat_as1_s1_03", "nom": "Statistique Descriptive", "ueId": "ue_as1_s1_02", "enseignant": ""},
+        {"id": "mat_as1_s1_04", "nom": "Probabilités I", "ueId": "ue_as1_s1_02", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_as1_s2_01", "nom": "Mathématiques II", "code": "AS-MATH2",
+      "niveauId": "as1", "semestreId": "as1_s2",
+      "matieres": [
+        {"id": "mat_as1_s2_01", "nom": "Analyse II", "ueId": "ue_as1_s2_01", "enseignant": ""},
+        {"id": "mat_as1_s2_02", "nom": "Calcul Différentiel", "ueId": "ue_as1_s2_01", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_as1_s2_02", "nom": "Probabilités & Statistique", "code": "AS-PROBA1",
+      "niveauId": "as1", "semestreId": "as1_s2",
+      "matieres": [
+        {"id": "mat_as1_s2_03", "nom": "Probabilités II", "ueId": "ue_as1_s2_02", "enseignant": ""},
+        {"id": "mat_as1_s2_04", "nom": "Statistique Inférentielle I", "ueId": "ue_as1_s2_02", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_as2_s1_01", "nom": "Statistique Inférentielle", "code": "AS-STAT2",
+      "niveauId": "as2", "semestreId": "as2_s1",
+      "matieres": [
+        {"id": "mat_as2_s1_01", "nom": "Tests Statistiques", "ueId": "ue_as2_s1_01", "enseignant": ""},
+        {"id": "mat_as2_s1_02", "nom": "Estimation", "ueId": "ue_as2_s1_01", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_as2_s1_02", "nom": "Modèles Linéaires", "code": "AS-REG1",
+      "niveauId": "as2", "semestreId": "as2_s1",
+      "matieres": [
+        {"id": "mat_as2_s1_03", "nom": "Régression Linéaire", "ueId": "ue_as2_s1_02", "enseignant": ""},
+        {"id": "mat_as2_s1_04", "nom": "Analyse de Variance", "ueId": "ue_as2_s1_02", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_as2_s2_01", "nom": "Séries Temporelles", "code": "AS-SERIE1",
+      "niveauId": "as2", "semestreId": "as2_s2",
+      "matieres": [
+        {"id": "mat_as2_s2_01", "nom": "Séries Temporelles", "ueId": "ue_as2_s2_01", "enseignant": ""},
+        {"id": "mat_as2_s2_02", "nom": "Prévision", "ueId": "ue_as2_s2_01", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_as2_s2_02", "nom": "Actuariat I", "code": "AS-ACT1",
+      "niveauId": "as2", "semestreId": "as2_s2",
+      "matieres": [
+        {"id": "mat_as2_s2_03", "nom": "Mathématiques Actuarielles", "ueId": "ue_as2_s2_02", "enseignant": ""},
+        {"id": "mat_as2_s2_04", "nom": "Assurance Vie", "ueId": "ue_as2_s2_02", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_ise1_eco_s1_01", "nom": "Microéconomie I", "code": "ISE-MICRO1",
+      "niveauId": "ise1_eco", "semestreId": "ise1_eco_s1",
+      "matieres": [
+        {"id": "mat_ise1_eco_s1_01", "nom": "Théorie du Consommateur", "ueId": "ue_ise1_eco_s1_01", "enseignant": ""},
+        {"id": "mat_ise1_eco_s1_02", "nom": "Théorie du Producteur", "ueId": "ue_ise1_eco_s1_01", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_ise1_eco_s1_02", "nom": "Macroéconomie I", "code": "ISE-MACRO1",
+      "niveauId": "ise1_eco", "semestreId": "ise1_eco_s1",
+      "matieres": [
+        {"id": "mat_ise1_eco_s1_03", "nom": "Comptabilité Nationale", "ueId": "ue_ise1_eco_s1_02", "enseignant": ""},
+        {"id": "mat_ise1_eco_s1_04", "nom": "Croissance Économique", "ueId": "ue_ise1_eco_s1_02", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_ise1_math_s1_01", "nom": "Mathématiques pour Économistes", "code": "ISE-MATH1",
+      "niveauId": "ise1_math", "semestreId": "ise1_math_s1",
+      "matieres": [
+        {"id": "mat_ise1_math_s1_01", "nom": "Optimisation", "ueId": "ue_ise1_math_s1_01", "enseignant": ""},
+        {"id": "mat_ise1_math_s1_02", "nom": "Algèbre Matricielle", "ueId": "ue_ise1_math_s1_01", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_ise2_s1_01", "nom": "Économétrie I", "code": "ISE-ECON1",
+      "niveauId": "ise2", "semestreId": "ise2_s1",
+      "matieres": [
+        {"id": "mat_ise2_s1_01", "nom": "Moindres Carrés Ordinaires", "ueId": "ue_ise2_s1_01", "enseignant": ""},
+        {"id": "mat_ise2_s1_02", "nom": "Modèles Économétriques", "ueId": "ue_ise2_s1_01", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_ise3_s1_01", "nom": "Économétrie Avancée", "code": "ISE-ECON3",
+      "niveauId": "ise3", "semestreId": "ise3_s1",
+      "matieres": [
+        {"id": "mat_ise3_s1_01", "nom": "Données de Panel", "ueId": "ue_ise3_s1_01", "enseignant": ""},
+        {"id": "mat_ise3_s1_02", "nom": "Variables Instrumentales", "ueId": "ue_ise3_s1_01", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_ips_math1_s1_01", "nom": "Mathématiques Fondamentales", "code": "IPS-MATH1",
+      "niveauId": "ips_math1", "semestreId": "ips_math1_s1",
+      "matieres": [
+        {"id": "mat_ips_math1_s1_01", "nom": "Analyse Réelle", "ueId": "ue_ips_math1_s1_01", "enseignant": ""},
+        {"id": "mat_ips_math1_s1_02", "nom": "Algèbre", "ueId": "ue_ips_math1_s1_01", "enseignant": ""}
+      ]
+    },
+    {
+      "id": "ue_ips_eco1_s1_01", "nom": "Économie Générale", "code": "IPS-ECO1",
+      "niveauId": "ips_eco1", "semestreId": "ips_eco1_s1",
+      "matieres": [
+        {"id": "mat_ips_eco1_s1_01", "nom": "Introduction à l'Économie", "ueId": "ue_ips_eco1_s1_01", "enseignant": ""},
+        {"id": "mat_ips_eco1_s1_02", "nom": "Marchés et Prix", "ueId": "ue_ips_eco1_s1_01", "enseignant": ""}
+      ]
+    }
+  ],
+  "documents": []
+}

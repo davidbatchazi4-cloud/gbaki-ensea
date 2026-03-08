@@ -1,4 +1,4 @@
-// lib/screens/matiere_screen.dart
+// lib/screens/matiere_screen.dart — v2
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
@@ -10,6 +10,7 @@ class MatiereScreen extends StatefulWidget {
   final Matiere matiere;
   final Filiere filiere;
   final Niveau niveau;
+
   const MatiereScreen({
     super.key,
     required this.matiere,
@@ -24,7 +25,7 @@ class MatiereScreen extends StatefulWidget {
 class _MatiereScreenState extends State<MatiereScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> _tabs = ['Cours', 'Devoirs', 'TD', 'Compléments'];
+  final List<TypeDocument> _types = TypeDocument.values;
 
   Color get _color {
     switch (widget.filiere.id) {
@@ -38,23 +39,13 @@ class _MatiereScreenState extends State<MatiereScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController = TabController(length: _types.length, vsync: this);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  List<Document> _getDocsForTab(int index) {
-    switch (index) {
-      case 0: return widget.matiere.cours;
-      case 1: return widget.matiere.devoirs;
-      case 2: return widget.matiere.td;
-      case 3: return widget.matiere.complements;
-      default: return [];
-    }
   }
 
   @override
@@ -75,23 +66,24 @@ class _MatiereScreenState extends State<MatiereScreen>
           labelColor: AppTheme.white,
           unselectedLabelColor: AppTheme.white.withValues(alpha: 0.6),
           labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          tabs: _tabs.map((t) => Tab(text: t)).toList(),
+          tabs: _types.map((t) => Tab(
+            icon: Text(t.emoji, style: const TextStyle(fontSize: 16)),
+            text: t.label,
+          )).toList(),
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: List.generate(
-          _tabs.length,
-          (index) => _DocumentList(
-            documents: _getDocsForTab(index),
+        children: _types.map((type) {
+          final docs = provider.getDocumentsForMatiere(widget.matiere.id, type);
+          return _DocumentList(
+            documents: docs,
             color: _color,
-            tabName: _tabs[index],
-            isAdmin: provider.isAdminLogged,
-            onDelete: (docId) {
-              provider.removeDocument(widget.niveau.id, docId);
-            },
-          ),
-        ),
+            type: type,
+            isAdmin: provider.isAdmin,
+            onDelete: (docId) => provider.deleteDocument(docId),
+          );
+        }).toList(),
       ),
     );
   }
@@ -100,14 +92,14 @@ class _MatiereScreenState extends State<MatiereScreen>
 class _DocumentList extends StatelessWidget {
   final List<Document> documents;
   final Color color;
-  final String tabName;
+  final TypeDocument type;
   final bool isAdmin;
   final Function(String) onDelete;
 
   const _DocumentList({
     required this.documents,
     required this.color,
-    required this.tabName,
+    required this.type,
     required this.isAdmin,
     required this.onDelete,
   });
@@ -119,22 +111,15 @@ class _DocumentList extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(_getTabIcon(), size: 64, color: color.withValues(alpha: 0.2)),
+            Text(type.emoji, style: const TextStyle(fontSize: 60)),
             const SizedBox(height: 16),
-            Text(
-              'Aucun $tabName disponible',
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.textMedium,
-              ),
-            ),
+            Text('Aucun ${type.label} disponible',
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600,
+                    color: AppTheme.textMedium)),
             const SizedBox(height: 8),
-            const Text(
-              'L\'administrateur n\'a pas encore\najouté de documents ici',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 12, color: AppTheme.textLight),
-            ),
+            const Text('L\'administrateur peut importer\ndes documents ici',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: AppTheme.textLight)),
           ],
         ),
       );
@@ -143,26 +128,39 @@ class _DocumentList extends StatelessWidget {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: documents.length,
-      itemBuilder: (context, index) {
-        final doc = documents[index];
-        return _DocumentCard(
-          document: doc,
-          color: color,
-          isAdmin: isAdmin,
-          onDelete: () => onDelete(doc.id),
-        );
-      },
+      itemBuilder: (context, index) => _DocumentCard(
+        document: documents[index],
+        color: color,
+        isAdmin: isAdmin,
+        onDelete: () => _confirmDelete(context, documents[index]),
+      ),
     );
   }
 
-  IconData _getTabIcon() {
-    switch (tabName) {
-      case 'Cours': return Icons.menu_book_outlined;
-      case 'Devoirs': return Icons.assignment_outlined;
-      case 'TD': return Icons.science_outlined;
-      case 'Compléments': return Icons.extension_outlined;
-      default: return Icons.folder_outlined;
-    }
+  void _confirmDelete(BuildContext context, Document doc) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Supprimer'),
+        content: Text('Supprimer "${doc.titre}" ?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              onDelete(doc.id);
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('"${doc.titre}" supprimé'),
+                backgroundColor: AppTheme.error,
+                behavior: SnackBarBehavior.floating,
+              ));
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -203,9 +201,7 @@ class _DocumentCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => DocumentScreen(document: document),
-        ),
+        MaterialPageRoute(builder: (_) => DocumentScreen(document: document)),
       ),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
@@ -214,22 +210,17 @@ class _DocumentCard extends StatelessWidget {
           color: AppTheme.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 8, offset: const Offset(0, 3)),
           ],
         ),
         child: Row(
           children: [
             Container(
-              width: 50,
-              height: 50,
+              width: 50, height: 50,
               decoration: BoxDecoration(
-                color: _fileColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
+                  color: _fileColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12)),
               child: Icon(_fileIcon, color: _fileColor, size: 26),
             ),
             const SizedBox(width: 14),
@@ -237,40 +228,23 @@ class _DocumentCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    document.titre,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textDark,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(document.titre,
+                      style: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w600,
+                          color: AppTheme.textDark),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: _fileColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          document.extension.toUpperCase(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            color: _fileColor,
-                          ),
-                        ),
-                      ),
+                      _buildTag(document.extension.toUpperCase(), _fileColor),
                       if (document.taille != null) ...[
                         const SizedBox(width: 6),
-                        Text(
-                          document.taille!,
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textLight),
-                        ),
+                        _buildTag(document.taille!, AppTheme.textLight),
+                      ],
+                      if (document.hasLocalFile) ...[
+                        const SizedBox(width: 6),
+                        _buildTag('📱 Local', AppTheme.success),
                       ],
                     ],
                   ),
@@ -283,8 +257,7 @@ class _DocumentCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [color, color.withValues(alpha: 0.8)],
-                    ),
+                        colors: [color, color.withValues(alpha: 0.8)]),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Row(
@@ -292,23 +265,25 @@ class _DocumentCard extends StatelessWidget {
                     children: [
                       Icon(Icons.auto_awesome, color: AppTheme.white, size: 12),
                       SizedBox(width: 4),
-                      Text(
-                        'IA',
-                        style: TextStyle(
-                          color: AppTheme.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Text('IA',
+                          style: TextStyle(
+                              color: AppTheme.white, fontSize: 11,
+                              fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
                 if (isAdmin) ...[
                   const SizedBox(height: 6),
                   GestureDetector(
-                    onTap: () => _confirmDelete(context),
-                    child: const Icon(Icons.delete_outline,
-                        color: AppTheme.error, size: 20),
+                    onTap: onDelete,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                          color: AppTheme.error.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6)),
+                      child: const Icon(Icons.delete_outline,
+                          color: AppTheme.error, size: 18),
+                    ),
                   ),
                 ],
               ],
@@ -319,27 +294,13 @@ class _DocumentCard extends StatelessWidget {
     );
   }
 
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer'),
-        content: Text('Supprimer "${document.titre}" ?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              onDelete();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildTag(String label, Color c) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+            color: c.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(4)),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 10, fontWeight: FontWeight.bold, color: c)),
+      );
 }
