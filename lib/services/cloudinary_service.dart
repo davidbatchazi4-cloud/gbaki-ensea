@@ -21,7 +21,8 @@ class CloudinaryService {
     void Function(double progress)? onProgress,
   }) async {
     try {
-      final uri = Uri.parse('https://api.cloudinary.com/v1_1/$_cloudName/raw/upload');
+      final uri = Uri.parse(
+        'https://api.cloudinary.com/v1_1/$_cloudName/raw/upload');
       final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       final publicId = 'gbaki_docs/$docId';
       final toSign = 'public_id=$publicId&timestamp=$timestamp$_apiSecret';
@@ -33,7 +34,8 @@ class CloudinaryService {
         ..fields['public_id'] = publicId
         ..fields['signature'] = signature
         ..fields['resource_type'] = 'raw'
-        ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: '$fileName.$extension'));
+        ..files.add(http.MultipartFile.fromBytes(
+          'file', bytes, filename: '$fileName.$extension'));
 
       final response = await request.send();
       final body = await response.stream.bytesToString();
@@ -62,9 +64,17 @@ class CloudinaryService {
       final signature = sha1.convert(utf8.encode(toSign)).toString();
       await http.post(
         Uri.parse('https://api.cloudinary.com/v1_1/$_cloudName/raw/destroy'),
-        body: {'public_id': publicId, 'api_key': _apiKey, 'timestamp': timestamp.toString(), 'signature': signature, 'resource_type': 'raw'},
+        body: {
+          'public_id': publicId,
+          'api_key': _apiKey,
+          'timestamp': timestamp.toString(),
+          'signature': signature,
+          'resource_type': 'raw',
+        },
       );
-    } catch (e) { if (kDebugMode) debugPrint('Cloudinary delete erreur: $e'); }
+    } catch (e) {
+      if (kDebugMode) debugPrint('Cloudinary delete erreur: $e');
+    }
   }
 
   String getPublicUrl(String docId, String extension) =>
